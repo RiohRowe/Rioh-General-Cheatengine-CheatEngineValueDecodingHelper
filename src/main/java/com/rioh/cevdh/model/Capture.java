@@ -246,5 +246,185 @@ public class Capture implements Serializable
 			+ ", eightByteAddrs=" + eightByteAddrs + ", floatAddrs="
 			+ floatAddrs + ", doubleAddrs=" + doubleAddrs + "]";
 	}
+	
+	public int getNumAddresses()
+	{
+		return this.oneByteAddrs.size() +
+					this.twoByteAddrs.size() +
+					this.fourByteAddrs.size() +
+					this.eightByteAddrs.size() +
+					this.floatAddrs.size() +
+					this.doubleAddrs.size();
+	}
+    public Object getIndex(int rowIndex)
+    {
+		int index = rowIndex;
+		if(index < this.getOneByteAddrs().size())
+		{
+			return this.getOneByteAddrs().get(
+				(Long)(this.getOneByteAddrs().keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]
+				)
+			);
+		}
+		index -= this.getOneByteAddrs().size();
+		if(index < this.getTwoByteAddrs().size())
+		{
+			return this.getTwoByteAddrs().get(
+				(Long)(this.getTwoByteAddrs().keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]
+				)
+			);
+		}
+		index -= this.getTwoByteAddrs().size();
+		if(index < this.getFourByteAddrs().size())
+		{
+			return this.getFourByteAddrs().get(
+				(Long)(this.getFourByteAddrs().keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]
+				)
+			);
+		}
+		index -= this.getFourByteAddrs().size();
+		if(index < this.getEightByteAddrs().size())
+		{
+			return this.getEightByteAddrs().get(
+				(Long)(this.getEightByteAddrs().keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]
+				)
+			);
+		}
+		index -= this.getEightByteAddrs().size();
+		if(index < this.getFloatAddrs().size())
+		{
+			return this.getFloatAddrs().get(
+				(Long)(this.getFloatAddrs().keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]
+				)
+			);
+		}
+		index -= this.getFloatAddrs().size();
+		if(index < this.getDoubleAddrs().size())
+		{
+			return this.getDoubleAddrs().get(
+				(Long)(this.getDoubleAddrs().keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]
+				)
+			);
+		}
+    	return null;
+    }
 
+	public void SetAtIndex(int rowIndex, Object aValue)
+	{
+		int index = rowIndex;
+		if(index < this.oneByteAddrs.size())
+		{
+			if(aValue.getClass() != Byte.class)
+			{
+				System.out.println(
+					"Capture - ERROR: cannot set variable of type " + 
+					Byte.class + " to a value of type "+ aValue.getClass());
+				return;
+			}
+			Long addr = (Long)(this.oneByteAddrs.keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]);
+			this.oneByteAddrs.put(addr, (byte) aValue);
+		}
+		index -= this.twoByteAddrs.size();
+		if(index < this.twoByteAddrs.size())
+		{
+			if(aValue.getClass() != Short.class && 
+				aValue.getClass() != Byte.class)
+			{
+				System.out.println(
+					"Capture - ERROR: cannot set variable of type " + 
+					Short.class + " to a value of type "+ aValue.getClass());
+				return;
+			}
+			Long addr = (Long)(this.twoByteAddrs.keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]);
+			this.twoByteAddrs.put(addr, (short) aValue);
+		}
+		index -= this.fourByteAddrs.size();
+		if(index < this.fourByteAddrs.size())
+		{
+			if(aValue.getClass() != Integer.class &&
+				aValue.getClass() != Short.class && 
+				aValue.getClass() != Byte.class)
+			{
+				System.out.println(
+					"Capture - ERROR: cannot set variable of type " + 
+					Integer.class + " to a value of type "+ aValue.getClass());
+				return;
+			}
+			Long addr = (Long)(this.fourByteAddrs.keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]);
+			this.fourByteAddrs.put(addr, (int) aValue);
+		}
+		index -= this.eightByteAddrs.size();
+		if(index < this.eightByteAddrs.size())
+		{
+			if(aValue.getClass() != Long.class &&
+				aValue.getClass() != Integer.class &&
+				aValue.getClass() != Short.class && 
+				aValue.getClass() != Byte.class)
+			{
+				System.out.println(
+					"Capture - ERROR: cannot set variable of type " + 
+					Long.class + " to a value of type "+ aValue.getClass());
+				return;
+			}
+			Long addr = (Long)(this.eightByteAddrs.keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]);
+			this.eightByteAddrs.put(addr, (long) aValue);
+		}
+		index -= this.floatAddrs.size();
+		if(index < this.floatAddrs.size())
+		{
+			if(	aValue.getClass() != Float.class &&
+				aValue.getClass() != Short.class && 
+				aValue.getClass() != Byte.class)
+			{
+				System.out.println(
+					"Capture - ERROR: cannot set variable of type " + 
+					Float.class + " to a value of type "+ aValue.getClass());
+				return;
+			}
+			Long addr = (Long)(this.floatAddrs.keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]);
+			this.floatAddrs.put(addr, (float) aValue);
+		}
+		index -= this.doubleAddrs.size();
+		if(index < this.doubleAddrs.size())
+		{
+			if(	aValue.getClass() != Double.class &&
+				aValue.getClass() != Float.class &&
+				aValue.getClass() != Integer.class &&
+				aValue.getClass() != Short.class && 
+				aValue.getClass() != Byte.class)
+			{
+				System.out.println(
+					"Capture - ERROR: cannot set variable of type " + 
+					Double.class + " to a value of type "+ aValue.getClass());
+				return;
+			}
+			Long addr = (Long)(this.doubleAddrs.keySet().stream()
+					.sorted((x,y) -> {if(x<=y) {return 1;}return 0;})
+					.toArray()[index]);
+			this.doubleAddrs.put(addr, (double) aValue);
+		}
+    	return;
+	}
 }

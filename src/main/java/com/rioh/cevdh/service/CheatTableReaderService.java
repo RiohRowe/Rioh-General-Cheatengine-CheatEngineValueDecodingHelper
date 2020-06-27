@@ -12,7 +12,9 @@ package com.rioh.cevdh.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,13 +57,19 @@ public class CheatTableReaderService
 		{
 			cheatTableTextFile = new File(BaseDir + filename); 
 			fileScanner = new Scanner(cheatTableTextFile);
-			//Until We reach the end of the file, keep reading in 
-			//from file.
+			//Read through file until reaching the end.
 			fileScanner.useDelimiter("<CheatEntry>");
 			while(fileScanner.hasNext())
 			{
+				// For each CheatEntry, grab the relevant data
+				//and use this to populate a capture object.
 				String tableValue = fileScanner.next();
-				if(tableValue.endsWith("</CheatEntry>"))
+				int endIndex = tableValue.indexOf("</CheatEntry>");
+				if(endIndex != -1)
+				{
+					addCheatTableValue(tableValue, capt);
+				}
+				if(endIndex != -1)
 				{
 					System.out.println("CHEATTABLEVALUE");
 				}
@@ -252,6 +260,196 @@ public class CheatTableReaderService
 		return capt;
 	}
 	
+	private static void addCheatTableValue(String tableValue, Capture capt)
+	{
+//		int id;
+//		String description;
+		String value;
+		String realAddr;
+		boolean isSigned;
+		boolean isHex;
+		char dataType;
+//		String rootAddr;
+//		List<String> offsetList = new ArrayList<String>();
+		
+		int startIndex;
+		int endIndex;
+		//Parse relevant String values from CheatTableValueMetadata
+		//Get ID;
+//		startIndex = tableValue.indexOf("<ID>") + 4;
+//		endIndex = tableValue.indexOf("</ID>");
+//		id = extractID(tableValue.substring(startIndex, endIndex));
+		
+		//Get Description
+//		startIndex = tableValue.indexOf("<Description>\"") + 14;
+//		endIndex = tableValue.indexOf("\"</Description>");
+//		description = tableValue.substring(startIndex, endIndex);
+		
+		//Get Value
+		startIndex = tableValue.indexOf("<LastState Value=\"") + 20;
+		endIndex = tableValue.indexOf("\" RealAddress");
+		value = tableValue.substring(startIndex, endIndex);
+		
+		//Get RealAddr
+		startIndex = tableValue.indexOf("RealAddress=\"") + 13;
+		endIndex = tableValue.indexOf("\"/>", startIndex);
+		realAddr = tableValue.substring(startIndex, endIndex);
+		
+		//Check if Signed
+		startIndex = tableValue.indexOf("<ShowAsSigned>") + 14;
+		if(startIndex != -1 && tableValue.charAt(startIndex) == '1')
+		{
+			isSigned = true;
+		}
+		else
+		{
+			isSigned = false;
+		}
+		
+		//Check if Hex
+		startIndex = tableValue.indexOf("<ShowAsHex>") + 11;
+		if(startIndex != -1 && tableValue.charAt(startIndex) == '1')
+		{
+			isHex = true;
+		}
+		else
+		{
+			isHex = false;
+		}
+		//Get DataType
+		startIndex = tableValue.indexOf("<VariableType>") + 14;
+		endIndex = tableValue.indexOf("</VariableType>");
+		dataType = extractDataType(tableValue.substring(startIndex, endIndex));
+		
+		//Get Root Address
+//		startIndex = tableValue.indexOf("<Address>") + 9;
+//		endIndex = tableValue.indexOf("</Address>");
+//		rootAddr = tableValue.substring(startIndex, endIndex);
+		
+		//Get All Offsets
+//		startIndex = tableValue.indexOf("<Offsets>");
+//		if(startIndex >= 0)
+//		{
+//			for(startIndex = tableValue.indexOf("<offset>") + 8, 
+//					endIndex = tableValue.indexOf("</offset>", startIndex); 
+//				startIndex >= 7 && endIndex >= 0; 
+//				startIndex = tableValue.indexOf("<offset>", endIndex) + 8,
+//				endIndex = tableValue.indexOf("</offset>", startIndex))
+//			{
+////				offsetList.add(tableValue.substring(startIndex, endIndex));
+//			}
+//		}
+		//Build Capture from parsed String values.
+		capt.setCaptureTime(new Date(System.currentTimeMillis()));
+		switch (dataType)
+		{
+			case 'b':
+			{
+				byte bValue;
+				if(isSigned)
+				{
+					bValue = Byte.parseByte(value);
+				}
+				else if(isHex)
+				{
+					bValue = Byte.parseByte(value, 16);
+				}
+				else
+				{
+					bValue = (byte) Integer.parseUnsignedInt(value);
+				}
+				capt.getOneByteAddrs().put(Long.parseLong(realAddr, 16), bValue);
+				break;
+			}
+			case 's':
+			{
+				short sValue;
+				if(isSigned)
+				{
+					sValue = Short.parseShort(value);
+				}
+				else if(isHex)
+				{
+					sValue = Short.parseShort(value, 16);
+				}
+				else
+				{
+					sValue = (short) Integer.parseUnsignedInt(value);
+				}
+				capt.getTwoByteAddrs().put(Long.parseLong(realAddr, 16), sValue);
+				break;
+			}
+			case 'i':
+			{
+				int iValue;
+				if(isSigned)
+				{
+					iValue = Integer.parseInt(value);
+				}
+				else if(isHex)
+				{
+					iValue = Integer.parseInt(value, 16);
+				}
+				else
+				{
+					iValue = Integer.parseUnsignedInt(value);
+				}
+				capt.getFourByteAddrs().put(Long.parseLong(realAddr, 16), iValue);
+				break;
+			}
+			case 'l':
+			{
+				long lValue;
+				if(isSigned)
+				{
+					lValue = Long.parseLong(value);
+				}
+				else if(isHex)
+				{
+					lValue = Long.parseLong(value, 16);
+				}
+				else
+				{
+					lValue = Long.parseUnsignedLong(value);
+				}
+				capt.getEightByteAddrs().put(Long.parseLong(realAddr, 16), lValue);
+				break;
+			}
+			case 'f':
+			{
+				float fValue;
+				if(isHex)
+				{
+					fValue = Float.intBitsToFloat(Integer.parseInt(value, 16));
+				}
+				else
+				{
+					fValue = Float.parseFloat(value);
+				}
+				capt.getFloatAddrs().put(Long.parseLong(realAddr, 16), fValue);
+				break;
+			}
+			case 'd':
+			{
+				double dValue;
+				if(isSigned)
+				{
+					dValue = Double.parseDouble(value);
+				}
+				else
+				{
+					dValue = Double.parseDouble(value);
+				}
+				capt.getDoubleAddrs().put(Long.parseLong(realAddr, 16), dValue); 
+				break;
+			}
+			default:
+			{
+				System.out.println("INVALID TYPE");
+			}
+		}
+	}
+
 	private String extractValue(String rawValueData)
 	{
 		//Isolate Value
@@ -268,7 +466,7 @@ public class CheatTableReaderService
 		return rawAddressData.substring(startIndex, endIndex);
 	}
 	
-	private char extractDataType(String rawDataTypeData)
+	private static char extractDataType(String rawDataTypeData)
 	{
 //		System.out.println("RawDataType = " + rawDataTypeData);
 		//Isolate Address
@@ -285,5 +483,10 @@ public class CheatTableReaderService
 		if(rawDataTypeData.contains("Double"))
 			return 'd';
 		return 0;
+	}
+	
+	private static int extractID(String idValue)
+	{
+		return Integer.parseInt(idValue);
 	}
 }
